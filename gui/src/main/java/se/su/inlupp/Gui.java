@@ -10,15 +10,11 @@ import javafx.stage.Stage;
 public class Gui extends Application {
 
   public void start(Stage stage) {
-    Graph<String> graph = new ListGraph<String>();
-    String javaVersion = System.getProperty("java.version");
-    String javafxVersion = System.getProperty("javafx.version");
-    Label label =
-        new Label("Hello, JavaFX " + javafxVersion + ", running on Java " + javaVersion + ".");
-
-    VBox root = new VBox(30, label);
-    root.setAlignment(Pos.CENTER);
-    Scene scene = new Scene(root, 640, 480);
+    //Graph<String> graph = new ListGraph<String>();
+    TravelPlannerModel model = new TravelPlannerModel();
+    TravelPlannerView view = new TravelPlannerView(model,stage);
+    view.getChildren();
+    Scene scene = new Scene(view, 640, 480);
     stage.setScene(scene);
     stage.show();
   }

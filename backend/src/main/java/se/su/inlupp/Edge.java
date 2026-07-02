@@ -1,12 +1,9 @@
 package se.su.inlupp;
 
 public interface Edge<T> {
-
-  int getWeight();
-
-  void setWeight(int weight);
-
   T getDestination();
-
+  int getWeight();
+  void setWeight(int weight);
   String getName();
+  String toString();
 }
