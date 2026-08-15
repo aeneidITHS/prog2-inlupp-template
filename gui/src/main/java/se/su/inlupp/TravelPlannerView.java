@@ -10,6 +10,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Line;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
@@ -217,6 +218,8 @@ public class TravelPlannerView extends BorderPane {
                                 new File(model.getImagePath())
                                         .toURI().toString());
                         ImageView imageView = new ImageView(image);
+                        imageView.fitWidthProperty().bind(mapPane.widthProperty());
+                        imageView.fitHeightProperty().bind(mapPane.heightProperty());
                         mapPane.getChildren().add(0, imageView);
                     }
                     changed = false;
@@ -385,19 +388,26 @@ public class TravelPlannerView extends BorderPane {
 
                 display.setVisible(true);
 
-                ArrayList<double[]> coordinates = new ArrayList<>();
+                //ArrayList<double[]> coordinates = new ArrayList<>();
                 List<City> nodes = path.getNodes();
                 for (int i = 0; i < nodes.size() - 1; i++) {
                     CityNodeView fromNode = getCityNodeView(nodes.get(i));
                     CityNodeView toNode = getCityNodeView(nodes.get(i + 1));
                     if (fromNode != null && toNode != null) {
-                        coordinates.add(new double[]{
-                                fromNode.getLayoutX(), fromNode.getLayoutY(),
-                                toNode.getLayoutX(), toNode.getLayoutY()
-                        });
+                        Line line = new Line();
+                        line.startXProperty().bind(fromNode.layoutXProperty());
+                        line.startYProperty().bind(fromNode.layoutYProperty());
+                        line.endXProperty().bind(toNode.layoutXProperty());
+                        line.endYProperty().bind(toNode.layoutYProperty());
+                        mapPane.getChildren().add(0, line);
                     }
-                    RouteEdgeView routeEdgeView = new RouteEdgeView(coordinates);
-                    mapPane.getChildren().add(routeEdgeView);
+                    //coordinates.add(new double[]{
+                    //      fromNode.getLayoutX(), fromNode.getLayoutY(),
+                    //    toNode.getLayoutX(), toNode.getLayoutY()
+                    //});
+                    //}
+                    //RouteEdgeView routeEdgeView = new RouteEdgeView(coordinates);
+                    //mapPane.getChildren().add(routeEdgeView);
 
 
                 }
