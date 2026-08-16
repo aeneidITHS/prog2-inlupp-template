@@ -203,6 +203,7 @@ public class TravelPlannerModel {
     }
 
     public void loadGraph(File fileName) throws FileNotFoundException {
+        setImagePath(null);
         travelFileManager.loadGraph(fileName);
     }
 

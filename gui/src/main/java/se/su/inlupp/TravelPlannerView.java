@@ -151,6 +151,8 @@ public class TravelPlannerView extends BorderPane {
                 Optional<ButtonType> res = alert.showAndWait();
                 if (res.isPresent() && res.get().equals(ButtonType.OK)) {
                     mapPane.getChildren().clear();
+                    model.removeAllCities();
+                    model.setImagePath(null);
                     changed = false;
                     statusLabel.setText("New map created");
                 }
@@ -173,13 +175,6 @@ public class TravelPlannerView extends BorderPane {
                 ImageView imageView = new ImageView(image);
                 mapPane.getChildren().add(0, imageView);
                 model.setImagePath(file.getAbsolutePath());
-                try {
-                    model.saveImageReference(file.getAbsolutePath(), file);
-                } catch (IOException e) {
-                    Alert alert = new Alert(Alert.AlertType.ERROR,
-                            "Could not save image reference!");
-                    alert.showAndWait();
-                }
                 changed = true;
                 statusLabel.setText("Image loaded: " + file.getName());
             }
@@ -244,7 +239,20 @@ public class TravelPlannerView extends BorderPane {
 
     class SaveHandler implements EventHandler<ActionEvent> {
         public void handle(ActionEvent event) {
-            File file = fileChooser.showSaveDialog(stage);
+            if(changed){
+                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                alert.setContentText(
+                        "Unsaved changes, open another file anyway?"
+                );
+
+                Optional<ButtonType> result = alert.showAndWait();
+
+                if (result.isEmpty() ||
+                        result.get() != ButtonType.OK) {
+                    return;
+                }
+            }
+            File file = fileChooser.showOpenDialog(stage);
             if (file != null) {
                 statusLabel.setText("Saved: " + file.getName());
                 changed = false;
@@ -349,7 +357,10 @@ public class TravelPlannerView extends BorderPane {
             Optional<String> name = nameDialog.showAndWait();
 
             if (!name.isPresent()) return;
-            if (name.get().isEmpty()) return;
+            if (name.get().isBlank()){
+                new Alert(Alert.AlertType.ERROR, "Name cannot be blank!").showAndWait();
+                return;
+            }
 
             TextInputDialog weightDialog = new TextInputDialog();
             weightDialog.setTitle("Connect Cities");
@@ -358,7 +369,16 @@ public class TravelPlannerView extends BorderPane {
 
             if (!weight.isPresent()) return;
 
-            int weightValue = Integer.parseInt(weight.get());
+            int weightValue;
+            try{
+                weightValue = Integer.parseInt(weight.get());
+            }catch (NumberFormatException e){
+                new Alert(
+                        Alert.AlertType.ERROR,
+                        "Weight must be a number!"
+                ).showAndWait();
+                return;
+            }
 
             if (weightValue < 0) {
                 new Alert(Alert.AlertType.ERROR, "Weight cannot be negative!").showAndWait();
@@ -400,24 +420,28 @@ public class TravelPlannerView extends BorderPane {
             City to = selected.get(1).getCity();
 
             Path<City> path = model.findPath(from, to);
-            if (path == null) return; {
-                display.setText("Algorithm: " + model.getCurrentAlgorithmName() + "\n" + path);
+            if (path == null) {
+                new Alert(Alert.AlertType.INFORMATION, "No path exists between selected cities.").showAndWait();
+            return;
+            }
+            {
+                    display.setText("Algorithm: " + model.getCurrentAlgorithmName() + "\n" + path);
 
 
-                display.setVisible(true);
+                    display.setVisible(true);
 
-                ArrayList<double[]> coordinates = new ArrayList<>();
-                List<City> nodes = path.getNodes();
-                for (int i = 0; i < nodes.size() - 1; i++) {
-                    CityNodeView fromNode = getCityNodeView(nodes.get(i));
-                    CityNodeView toNode = getCityNodeView(nodes.get(i + 1));
-                    if (fromNode != null && toNode != null) {
-                        coordinates.add(new double[]{
-                                fromNode.getLayoutX(), fromNode.getLayoutY(),
-                                toNode.getLayoutX(), toNode.getLayoutY()
-                        });
+                    ArrayList<double[]> coordinates = new ArrayList<>();
+                    List<City> nodes = path.getNodes();
+                    for (int i = 0; i < nodes.size() - 1; i++) {
+                        CityNodeView fromNode = getCityNodeView(nodes.get(i));
+                        CityNodeView toNode = getCityNodeView(nodes.get(i + 1));
+                        if (fromNode != null && toNode != null) {
+                            coordinates.add(new double[]{
+                                    fromNode.getLayoutX(), fromNode.getLayoutY(),
+                                    toNode.getLayoutX(), toNode.getLayoutY()
+                            });
+                        }
                     }
-                }
                     thisPath = new RouteEdgeView(coordinates);
                     mapPane.getChildren().add(0, thisPath);
 
@@ -442,7 +466,8 @@ public class TravelPlannerView extends BorderPane {
                     }
 
 
+                }
             }
         }
     }
-}
+
