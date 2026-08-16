@@ -153,6 +153,7 @@ public class TravelPlannerView extends BorderPane {
                     mapPane.getChildren().clear();
                     model.removeAllCities();
                     model.setImagePath(null);
+                    thisPath = null;
                     changed = false;
                     statusLabel.setText("New map created");
                 }
@@ -206,6 +207,18 @@ public class TravelPlannerView extends BorderPane {
 
     class OpenHandler implements EventHandler<ActionEvent> {
         public void handle(ActionEvent event) {
+            if(changed){
+                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+
+                alert.setContentText("Unsaved changed, open another file anyway?");
+
+                Optional<ButtonType> result = alert.showAndWait();
+
+                if(result.isEmpty() || result.get() != ButtonType.OK){
+                    return;
+                }
+            }
+
             File file = fileChooser.showOpenDialog(stage);
             if (file != null) {
                 statusLabel.setText("Opened: " + file.getName());
@@ -213,9 +226,6 @@ public class TravelPlannerView extends BorderPane {
                 try {
                     mapPane.getChildren().clear();
                     model.loadGraph(file);
-                    for(City city : model.getCities()){
-                        addCityToMap(city);
-                    }
                     String imagePath = model.getImagePath();
                     if (imagePath != null && !imagePath.isBlank()){
                         Image image = new Image(
@@ -225,6 +235,10 @@ public class TravelPlannerView extends BorderPane {
                         imageView.fitWidthProperty().bind(mapPane.widthProperty());
                         imageView.fitHeightProperty().bind(mapPane.heightProperty());
                         mapPane.getChildren().add(0, imageView);
+
+                    }
+                    for(City city : model.getCities()){
+                        addCityToMap(city);
                     }
                     changed = false;
                 }
@@ -239,20 +253,7 @@ public class TravelPlannerView extends BorderPane {
 
     class SaveHandler implements EventHandler<ActionEvent> {
         public void handle(ActionEvent event) {
-            if(changed){
-                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-                alert.setContentText(
-                        "Unsaved changes, open another file anyway?"
-                );
-
-                Optional<ButtonType> result = alert.showAndWait();
-
-                if (result.isEmpty() ||
-                        result.get() != ButtonType.OK) {
-                    return;
-                }
-            }
-            File file = fileChooser.showOpenDialog(stage);
+            File file = fileChooser.showSaveDialog(stage);
             if (file != null) {
                 statusLabel.setText("Saved: " + file.getName());
                 changed = false;
