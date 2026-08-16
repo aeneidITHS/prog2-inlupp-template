@@ -59,6 +59,7 @@ public class CityNodeView extends Group {
             double newX = getLayoutX() + event.getX() - startX;
             double newY = getLayoutY() + event.getY() - startY;
             relocate(newX, newY);
+            city.setPosition((int) newX, (int) newY);
         }
     }
 
