@@ -292,7 +292,8 @@ public class TravelPlannerView extends BorderPane {
                 mapPane.getChildren().remove(cityNode);
             }
             if (thisPath != null){
-                thisPath.RemoveLine(0);
+                mapPane.getChildren().remove(thisPath);
+                thisPath = null;
             }
             changed = true;
             statusLabel.setText("City removed");
