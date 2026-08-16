@@ -430,44 +430,33 @@ public class TravelPlannerView extends BorderPane {
 
                     display.setVisible(true);
 
-                    ArrayList<double[]> coordinates = new ArrayList<>();
-                    List<City> nodes = path.getNodes();
-                    for (int i = 0; i < nodes.size() - 1; i++) {
-                        CityNodeView fromNode = getCityNodeView(nodes.get(i));
-                        CityNodeView toNode = getCityNodeView(nodes.get(i + 1));
-                        if (fromNode != null && toNode != null) {
-                            coordinates.add(new double[]{
-                                    fromNode.getLayoutX(), fromNode.getLayoutY(),
-                                    toNode.getLayoutX(), toNode.getLayoutY()
-                            });
-                        }
+                ArrayList<double[]> coordinates = new ArrayList<>();
+                List<City> nodes = path.getNodes();
+                for (int i = 0; i < nodes.size() - 1; i++) {
+                    CityNodeView fromNode = getCityNodeView(nodes.get(i));
+                    CityNodeView toNode = getCityNodeView(nodes.get(i + 1));
+                    if (fromNode != null && toNode != null) {
+                        coordinates.add(new double[]{
+                                fromNode.getLayoutX(), fromNode.getLayoutY(),
+                                toNode.getLayoutX(), toNode.getLayoutY()
+                        });
                     }
-                    thisPath = new RouteEdgeView(coordinates);
-                    mapPane.getChildren().add(0, thisPath);
+                }
+                thisPath = new RouteEdgeView(coordinates);
+                mapPane.getChildren().add(0, thisPath);
 
-                    for (int i = 0; i < nodes.size() - 1; i++) {
-                        CityNodeView fromNode = getCityNodeView(nodes.get(i));
-                        CityNodeView toNode = getCityNodeView(nodes.get(i + 1));
-                        final int index = i;
-                        if (fromNode != null && toNode != null) {
-                            fromNode.layoutXProperty().addListener((obs, oldVal, newVal) -> {
-                                ((Line) thisPath.getChildren().get(index)).setStartX((Double) newVal);
-                            });
-                            fromNode.layoutYProperty().addListener((obs, oldVal, newVal) -> {
-                                ((Line) thisPath.getChildren().get(index)).setStartY((Double) newVal);
-                            });
-                            toNode.layoutXProperty().addListener((obs, oldVal, newVal) -> {
-                                ((Line) thisPath.getChildren().get(index)).setEndX((Double) newVal);
-                            });
-                            toNode.layoutYProperty().addListener((obs, oldVal, newVal) -> {
-                                ((Line) thisPath.getChildren().get(index)).setEndY((Double) newVal);
-                            });
-                        }
+                for (int i = 0; i < nodes.size() - 1; i++) {
+                    CityNodeView fromNode = getCityNodeView(nodes.get(i));
+                    CityNodeView toNode = getCityNodeView(nodes.get(i + 1));
+                    if (fromNode != null && toNode != null) {
+                        Line line = (Line) thisPath.getChildren().get(i);
+                        line.startXProperty().bind(fromNode.layoutXProperty());
+                        line.startYProperty().bind(fromNode.layoutYProperty());
+                        line.endXProperty().bind(toNode.layoutXProperty());
+                        line.endYProperty().bind(toNode.layoutYProperty());
                     }
-
-
                 }
             }
         }
     }
-
+}
