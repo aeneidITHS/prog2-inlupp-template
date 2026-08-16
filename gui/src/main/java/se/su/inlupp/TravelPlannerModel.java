@@ -145,23 +145,23 @@ public class TravelPlannerModel {
 
     public Set<String> getConnections(){
         Set<String> connectionLines = new HashSet<>();
+        Set<String> addedConnections = new HashSet<>();
 
         for(City from : cities){
             for(Edge<City> edge: cities.getEdgesFrom(from)){
                 City to = edge.getDestination();
 
+                String key1 =  from.name() + ";" + to.name();
+                String key2 =  to.name() + ";" + from.name();
 
-                String edgeKey1 = "EDGE;" +  from.name() + ";" + to.name() + ";";
-                String edgeKey2 = "EDGE;" + to.name() + ";" + from.name() + ";";
-
-                if (!connectionLines.contains(edgeKey1) && !connectionLines.contains(edgeKey2)) {
+                if (!addedConnections.contains(key1) && !addedConnections.contains(key2)) {
                     connectionLines.add("EDGE;" +
-                            from.name() + "-" +
-                            to.name()  + ";" +
-                            to.name() + ";" +
-                            from.name() + ";" +
-                            cities.getEdgeBetween(from,to).getName() + ";" +
-                            edge.getWeight()+ "\n");
+                                    from.name() + ";" +
+                                    to.name() + ";" +
+                                    edge.getName() + ";" +
+                                    edge.getWeight() + "\n");
+
+                    addedConnections.add(key1);
                 }
             }
         }

@@ -91,6 +91,7 @@ public class TravelFileManager {
             City from = model.getCityByName(parts[1]);
             City to = model.getCityByName(parts[2]);
             String name = parts[3];
+            System.out.println(name);
             int totalWeight = Integer.parseInt(parts[4]);
             if (from != null && to != null){
                 model.connectCities(from,to,totalWeight,name);

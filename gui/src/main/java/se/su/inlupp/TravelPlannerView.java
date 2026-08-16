@@ -17,6 +17,7 @@ import javafx.stage.WindowEvent;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -30,6 +31,7 @@ public class TravelPlannerView extends BorderPane {
     private boolean changed = false;
     private Stage stage;
     private ImageView backgroundImage = new ImageView();
+    private RouteEdgeView thisPath;
 
 
 
@@ -171,6 +173,13 @@ public class TravelPlannerView extends BorderPane {
                 ImageView imageView = new ImageView(image);
                 mapPane.getChildren().add(0, imageView);
                 model.setImagePath(file.getAbsolutePath());
+                try {
+                    model.saveImageReference(file.getAbsolutePath(), file);
+                } catch (IOException e) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR,
+                            "Could not save image reference!");
+                    alert.showAndWait();
+                }
                 changed = true;
                 statusLabel.setText("Image loaded: " + file.getName());
             }
@@ -207,15 +216,15 @@ public class TravelPlannerView extends BorderPane {
                 statusLabel.setText("Opened: " + file.getName());
                 changed = false;
                 try {
+                    mapPane.getChildren().clear();
                     model.loadGraph(file);
-                    System.out.println(model.getCities().toString());
                     for(City city : model.getCities()){
-                        System.out.println(city.toString());
                         addCityToMap(city);
                     }
-                    if (model.getImagePath() != null) {
+                    String imagePath = model.getImagePath();
+                    if (imagePath != null && !imagePath.isBlank()){
                         Image image = new Image(
-                                new File(model.getImagePath())
+                                new File(imagePath)
                                         .toURI().toString());
                         ImageView imageView = new ImageView(image);
                         imageView.fitWidthProperty().bind(mapPane.widthProperty());
@@ -223,7 +232,8 @@ public class TravelPlannerView extends BorderPane {
                         mapPane.getChildren().add(0, imageView);
                     }
                     changed = false;
-                } catch (FileNotFoundException e) {
+                }
+                 catch (IOException e) {
                     throw new RuntimeException(e);
                 }
 
@@ -272,6 +282,9 @@ public class TravelPlannerView extends BorderPane {
             for (CityNodeView cityNode : selected) {
                 model.removeCity(cityNode.getCity());
                 mapPane.getChildren().remove(cityNode);
+            }
+            if (thisPath != null){
+                thisPath.RemoveLine(0);
             }
             changed = true;
             statusLabel.setText("City removed");
@@ -383,34 +396,47 @@ public class TravelPlannerView extends BorderPane {
 
             Path<City> path = model.findPath(from, to);
             if (path == null) return; {
-                display.setText("Algorithm: " + model.getCurrentAlgorithmName() + "\n" + path.toString());
+                display.setText("Algorithm: " + model.getCurrentAlgorithmName() + "\n" + path);
 
 
                 display.setVisible(true);
 
-                //ArrayList<double[]> coordinates = new ArrayList<>();
+                ArrayList<double[]> coordinates = new ArrayList<>();
                 List<City> nodes = path.getNodes();
                 for (int i = 0; i < nodes.size() - 1; i++) {
                     CityNodeView fromNode = getCityNodeView(nodes.get(i));
                     CityNodeView toNode = getCityNodeView(nodes.get(i + 1));
                     if (fromNode != null && toNode != null) {
-                        Line line = new Line();
-                        line.startXProperty().bind(fromNode.layoutXProperty());
-                        line.startYProperty().bind(fromNode.layoutYProperty());
-                        line.endXProperty().bind(toNode.layoutXProperty());
-                        line.endYProperty().bind(toNode.layoutYProperty());
-                        mapPane.getChildren().add(0, line);
+                        coordinates.add(new double[]{
+                                fromNode.getLayoutX(), fromNode.getLayoutY(),
+                                toNode.getLayoutX(), toNode.getLayoutY()
+                        });
                     }
-                    //coordinates.add(new double[]{
-                    //      fromNode.getLayoutX(), fromNode.getLayoutY(),
-                    //    toNode.getLayoutX(), toNode.getLayoutY()
-                    //});
-                    //}
-                    //RouteEdgeView routeEdgeView = new RouteEdgeView(coordinates);
-                    //mapPane.getChildren().add(routeEdgeView);
-
-
                 }
+                    thisPath = new RouteEdgeView(coordinates);
+                    mapPane.getChildren().add(0, thisPath);
+
+                    for (int i = 0; i < nodes.size() - 1; i++) {
+                        CityNodeView fromNode = getCityNodeView(nodes.get(i));
+                        CityNodeView toNode = getCityNodeView(nodes.get(i + 1));
+                        final int index = i;
+                        if (fromNode != null && toNode != null) {
+                            fromNode.layoutXProperty().addListener((obs, oldVal, newVal) -> {
+                                ((Line) thisPath.getChildren().get(index)).setStartX((Double) newVal);
+                            });
+                            fromNode.layoutYProperty().addListener((obs, oldVal, newVal) -> {
+                                ((Line) thisPath.getChildren().get(index)).setStartY((Double) newVal);
+                            });
+                            toNode.layoutXProperty().addListener((obs, oldVal, newVal) -> {
+                                ((Line) thisPath.getChildren().get(index)).setEndX((Double) newVal);
+                            });
+                            toNode.layoutYProperty().addListener((obs, oldVal, newVal) -> {
+                                ((Line) thisPath.getChildren().get(index)).setEndY((Double) newVal);
+                            });
+                        }
+                    }
+
+
             }
         }
     }
