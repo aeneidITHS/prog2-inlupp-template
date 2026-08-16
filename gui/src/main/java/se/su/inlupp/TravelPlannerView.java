@@ -174,6 +174,8 @@ public class TravelPlannerView extends BorderPane {
             if (file != null) {
                 Image image = new Image(file.toURI().toString());
                 ImageView imageView = new ImageView(image);
+                imageView.fitWidthProperty().bind(mapPane.widthProperty());
+                imageView.fitHeightProperty().bind(mapPane.heightProperty());
                 mapPane.getChildren().add(0, imageView);
                 model.setImagePath(file.getAbsolutePath());
                 changed = true;
@@ -445,7 +447,7 @@ public class TravelPlannerView extends BorderPane {
                     }
                 }
                 thisPath = new RouteEdgeView(coordinates);
-                mapPane.getChildren().add(0, thisPath);
+                mapPane.getChildren().add(thisPath);
 
                 for (int i = 0; i < nodes.size() - 1; i++) {
                     CityNodeView fromNode = getCityNodeView(nodes.get(i));
