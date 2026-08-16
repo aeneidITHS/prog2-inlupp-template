@@ -385,6 +385,11 @@ public class TravelPlannerView extends BorderPane {
                 }
             }
 
+            if (thisPath != null) {
+                mapPane.getChildren().remove(thisPath);
+                thisPath = null;
+            }
+
             if (selected.size() != 2) {
                 Alert alert = new Alert(Alert.AlertType.ERROR, "Select two cities");
                 alert.showAndWait();
